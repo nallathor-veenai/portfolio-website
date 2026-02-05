@@ -25,7 +25,7 @@ export default function ProfilePage() {
       <div className="profile-header">
         <div className="profile-avatar">JV</div>
         <h1 className="profile-name">{resumeData.name}</h1>
-        <p className="profile-title">Engineering Manager | AI/ML Leader | 10+ Years at Amazon</p>
+        <p className="profile-title">Engineering Manager | 10+ Years at Amazon</p>
         <p className="profile-location">
           <MapPin size={14} /> {resumeData.location}
         </p>

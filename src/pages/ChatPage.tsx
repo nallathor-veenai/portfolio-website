@@ -17,8 +17,52 @@ const suggestedQuestions = [
   "What's JV's education?",
 ];
 
+// Synonym mappings for better search
+const synonyms: Record<string, string[]> = {
+  'latency': ['performance', 'speed', 'fast', 'tps', 'scale', 'high scale', 'lambda'],
+  'performance': ['latency', 'speed', 'fast', 'tps', 'scale', 'optimization'],
+  'scale': ['scaling', 'growth', 'large', 'million', 'tps', 'high scale'],
+  'voice': ['audio', 'speech', 'tts', 'text-to-speech', 'narration', 'audiobook'],
+  'audio': ['voice', 'speech', 'sound', 'audiobook', 'narration'],
+  'books': ['kindle', 'reading', 'audiobook', 'literature'],
+  'music': ['classical', 'audio', 'alexa'],
+};
+
+// Extract key terms from query
+function extractTerms(query: string): string[] {
+  const words = query.toLowerCase().split(/\s+/);
+  const terms = new Set<string>();
+
+  words.forEach(word => {
+    // Clean punctuation
+    const clean = word.replace(/[^a-z0-9]/g, '');
+    if (clean.length > 2) {
+      terms.add(clean);
+      // Add synonyms
+      if (synonyms[clean]) {
+        synonyms[clean].forEach(syn => terms.add(syn));
+      }
+    }
+  });
+
+  return Array.from(terms);
+}
+
+// Score how well content matches search terms
+function scoreMatch(text: string, terms: string[]): number {
+  const lower = text.toLowerCase();
+  let score = 0;
+  terms.forEach(term => {
+    if (lower.includes(term)) {
+      score += 1;
+    }
+  });
+  return score;
+}
+
 function searchContent(query: string): Message {
   const lowerQuery = query.toLowerCase();
+  const searchTerms = extractTerms(query);
   const response: Message = {
     id: Date.now(),
     text: '',
@@ -48,30 +92,34 @@ function searchContent(query: string): Message {
     return response;
   }
 
+  // Check for latency/performance/scale queries
+  if (lowerQuery.match(/\b(latency|performance|speed|fast|tps|optimization)\b/)) {
+    response.text = `JV has significant experience with high-performance systems:\n\n**Lambda@Edge (2015-2019):**\n- Worked on features serving ~4.5M TPS (transactions per second)\n- Built multi-platform rendering tools for Kindle\n\n**Alexa+ (2024-Present):**\n- Scaled genAI experiences to 1M+ users\n- Optimized 10+ backend services for device product launches`;
+    response.experience = resumeData.experience.filter(exp =>
+      exp.highlights.some(h =>
+        h.toLowerCase().includes('tps') ||
+        h.toLowerCase().includes('scale') ||
+        h.toLowerCase().includes('performance')
+      )
+    );
+    return response;
+  }
+
   // Check for leadership/team/management queries
-  if (lowerQuery.match(/\b(lead|team|manage|leadership|scale|engineer)\b/)) {
-    response.text = `JV's leadership experience spans multiple teams:\n\n**Team Building:**\n- Scaled team from 4 to 13 engineers at Kindle Assistive Reader\n- Led 23-engineer cross-org migration across 3 organizations\n- Conducted 250+ interviews\n\n**Leadership Skills:** ${resumeData.coreExpertise.leadership.join(', ')}\n\n**Key Impact:**\n- Reduced operational burden by 6 headcount, yielding $120M contribution profits yearly\n- Seamless platform migration serving 2.2M users with no regressions`;
+  if (lowerQuery.match(/\b(lead|team|manage|leadership|engineer)\b/)) {
+    response.text = `JV's leadership experience spans multiple teams:\n\n**Team Building:**\n- Scaled team from 4 to 13 engineers at Kindle Assistive Reader\n- Led 23-engineer cross-org migration across 3 organizations\n- Conducted 250+ interviews\n\n**Key Impact:**\n- Reduced operational burden by 6 headcount, yielding $120M contribution profits yearly\n- Seamless platform migration serving 2.2M users with no regressions`;
     response.experience = resumeData.experience.filter(exp =>
       exp.keywords.some(k => k.toLowerCase().includes('leadership') || k.toLowerCase().includes('team'))
     );
     return response;
   }
 
-  // Check for GitHub/projects queries
-  if (lowerQuery.match(/\b(github|project|repo|code|open source)\b/)) {
+  // Check for GitHub/projects queries - but be specific
+  if (lowerQuery.match(/\b(github|repo|open source)\b/) ||
+      (lowerQuery.includes('project') && !lowerQuery.includes('experience'))) {
     response.text = `Here are JV's GitHub projects:`;
     response.projects = resumeData.githubProjects;
     return response;
-  }
-
-  // Check for specific project mentions
-  for (const project of resumeData.githubProjects) {
-    if (lowerQuery.includes(project.name.toLowerCase()) ||
-        project.keywords.some(k => lowerQuery.includes(k.toLowerCase()))) {
-      response.text = `Found a relevant project:`;
-      response.projects = [project];
-      return response;
-    }
   }
 
   // Check for education queries
@@ -103,7 +151,7 @@ function searchContent(query: string): Message {
   }
 
   // Check for summary/about queries
-  if (lowerQuery.match(/\b(about|summary|who|introduce|tell me about|background)\b/)) {
+  if (lowerQuery.match(/\b(about|summary|who|introduce|background)\b/)) {
     response.text = resumeData.summary;
     return response;
   }
@@ -115,8 +163,30 @@ function searchContent(query: string): Message {
     return response;
   }
 
+  // Semantic search: find relevant experience and projects based on query terms
+  const expScores = resumeData.experience.map(exp => ({
+    exp,
+    score: scoreMatch(exp.highlights.join(' ') + ' ' + exp.keywords.join(' '), searchTerms)
+  })).filter(e => e.score > 0).sort((a, b) => b.score - a.score);
+
+  const projScores = resumeData.githubProjects.map(proj => ({
+    proj,
+    score: scoreMatch(proj.description + ' ' + proj.keywords.join(' '), searchTerms)
+  })).filter(p => p.score > 0).sort((a, b) => b.score - a.score);
+
+  if (expScores.length > 0 || projScores.length > 0) {
+    response.text = `Here's what I found related to "${query}":`;
+    if (expScores.length > 0) {
+      response.experience = expScores.slice(0, 2).map(e => e.exp);
+    }
+    if (projScores.length > 0) {
+      response.projects = projScores.slice(0, 2).map(p => p.proj);
+    }
+    return response;
+  }
+
   // Default response
-  response.text = `I can help you learn about JV's:\n\n- **AI/ML Experience** - LLMs, RAG systems, GenAI features\n- **Leadership** - Team scaling, cross-org programs\n- **Technical Skills** - AWS, distributed systems, multi-platform dev\n- **GitHub Projects** - Open source contributions\n- **Education & Background**\n\nTry asking something specific like "What's JV's AI experience?" or "Tell me about the GitHub projects"`;
+  response.text = `I couldn't find specific information about "${query}". Try asking about:\n\n- **AI/ML Experience** - LLMs, RAG systems, GenAI features\n- **Leadership** - Team scaling, cross-org programs\n- **Technical Skills** - AWS, distributed systems, high-scale systems\n- **GitHub Projects** - Open source contributions\n- **Education & Background**`;
   return response;
 }
 
