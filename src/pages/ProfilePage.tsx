@@ -2,20 +2,22 @@ import { useState } from 'react';
 import { Linkedin, Github, Mail, Phone, MapPin, FileText, X, Download, ExternalLink } from 'lucide-react';
 import { resumeData } from '../data/resumeData';
 
+const BASE_URL = import.meta.env.BASE_URL;
+
 export default function ProfilePage() {
   const [showResume, setShowResume] = useState(false);
 
   const handleDownloadPDF = () => {
     // Download the static PDF file
     const link = document.createElement('a');
-    link.href = '/JV-Resume.pdf';
+    link.href = `${BASE_URL}JV-Resume.pdf`;
     link.download = 'JV-Resume.pdf';
     link.click();
   };
 
   const handleOpenPDF = () => {
     // Open PDF in new tab
-    window.open('/JV-Resume.pdf', '_blank');
+    window.open(`${BASE_URL}JV-Resume.pdf`, '_blank');
   };
 
   return (
@@ -72,7 +74,7 @@ export default function ProfilePage() {
             <div className="pdf-content">
               {/* Embed PDF viewer */}
               <iframe
-                src="/JV-Resume.pdf"
+                src={`${BASE_URL}JV-Resume.pdf`}
                 title="JV Resume"
                 style={{
                   width: '100%',

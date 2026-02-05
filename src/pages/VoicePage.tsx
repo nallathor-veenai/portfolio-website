@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Mic } from 'lucide-react';
 import { shortResume } from '../data/resumeData';
 
+const BASE_URL = import.meta.env.BASE_URL;
+
 export default function VoicePage() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -17,7 +19,7 @@ export default function VoicePage() {
 
   useEffect(() => {
     // Check if audio file exists on mount
-    const audio = new Audio('/audio/resume_voice.wav');
+    const audio = new Audio(`${BASE_URL}audio/resume_voice.wav`);
     audio.addEventListener('canplaythrough', () => {
       setAudioLoaded(true);
     });
@@ -84,7 +86,7 @@ export default function VoicePage() {
 
         <audio
           ref={audioRef}
-          src="/audio/resume_voice.wav"
+          src={`${BASE_URL}audio/resume_voice.wav`}
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
           onEnded={handleEnded}
