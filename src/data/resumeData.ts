@@ -1,7 +1,5 @@
 export const resumeData = {
   name: "Jayavasanth Ramesh (JV)",
-  email: "[REDACTED_EMAIL]",
-  phone: "[REDACTED_PHONE]",
   location: "Seattle, WA",
   linkedin: "https://www.linkedin.com/in/jvr-seattle/",
   github: "https://github.com/nallathor-veenai",

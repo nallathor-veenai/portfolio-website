@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Linkedin, Github, Mail, Phone, MapPin, FileText, X, Download, ExternalLink } from 'lucide-react';
+import { Linkedin, Github, MapPin, FileText, X, Download, ExternalLink } from 'lucide-react';
 import { resumeData } from '../data/resumeData';
 
 const BASE_URL = import.meta.env.BASE_URL;
@@ -43,14 +43,6 @@ export default function ProfilePage() {
       </div>
 
       <div className="contact-info">
-        <div className="contact-item">
-          <Mail size={18} />
-          <a href={`mailto:${resumeData.email}`}>{resumeData.email}</a>
-        </div>
-        <div className="contact-item">
-          <Phone size={18} />
-          <span>{resumeData.phone}</span>
-        </div>
         <div className="contact-item">
           <MapPin size={18} />
           <span>{resumeData.location}</span>

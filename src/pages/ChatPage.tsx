@@ -146,7 +146,7 @@ function searchContent(query: string): Message {
 
   // Check for contact info
   if (lowerQuery.match(/\b(contact|email|phone|reach|linkedin)\b/)) {
-    response.text = `**Contact JV:**\n\n- Email: ${resumeData.email}\n- Phone: ${resumeData.phone}\n- Location: ${resumeData.location}\n- LinkedIn: ${resumeData.linkedin}\n- GitHub: ${resumeData.github}`;
+    response.text = `**Contact JV:**\n\n- Location: ${resumeData.location}\n- LinkedIn: ${resumeData.linkedin}\n- GitHub: ${resumeData.github}\n\nPlease reach out via LinkedIn for direct contact.`;
     return response;
   }
 
